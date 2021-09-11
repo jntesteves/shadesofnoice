@@ -240,13 +240,13 @@ RCAS needs to be applied after EASU as a separate pass.</li>
 
 <h2 id="conclusion">
 <a class="anchor" href="#conclusion" aria-hidden="true"><span class="octicon octicon-link"></span></a>Conclusion</h2>
-<p>FSR is merged in RetroArch’s main development branch and already on a released version. Community response has been very positive. I think the quality of the results look great. Here’s the anouncement on <a href="https://twitter.com/libretro/status/1433511745641922572">Twitter</a> with some good pictures demonstrating it, and the release <a href="https://www.libretro.com/index.php/retroarch-1-9-9-released/">announcement for RetroArch 1.9.9</a>, the first version to include the feature.</p>
+<p>FSR is merged in RetroArch’s main development branch and already on a released version. Community response has been very positive. I think the quality of the results look great. Here’s the announcement on <a href="https://twitter.com/libretro/status/1433511745641922572">Twitter</a> with some good pictures demonstrating it, and the release <a href="https://www.libretro.com/index.php/retroarch-1-9-9-released/">announcement for RetroArch 1.9.9</a>, the first version to include the feature.</p>
 
 <p>AMD deserves credit for a quality release of open-source code. This was my first foray into shaders and graphics programming in general, and I was able to get from nothing to a working implementation in exactly one day of work. For experienced graphics developers, this thing must be so easy it’s not even funny. They’ll probably try to push it out to an intern, so boring this thing must be.</p>
 
 <p>Also commendable is the work RetroArch’s developers have put into its renderer. The only reason I could get this done at all is because all the infrastructure for upscaling was already in place, so my work boiled down to just using it.</p>
 
-<p>If you’re asking yourself if you should implement FSR on your graphics renderer, the answer is probably yes, if your renderer already has some support for upscaling. Even if performance hasn’t been a problem. Users seem love FSR, they want it, and it’s free, there’s no reason not to.</p>
+<p>If you’re asking yourself if you should implement FSR on your graphics renderer, the answer is probably yes, if your renderer already has some support for upscaling. Even if performance hasn’t been a problem. Users seem to love FSR, they want it, and it’s free, there’s no reason not to.</p>
 
 <p>If you don’t have upscaling in place, it could get a little more tricky, I guess, but I wouldn’t know. If you want to add upscaling, them consider FSR as a valid option. As far as I know, all alternatives involve some kind of temporal dimension. FSR is much simpler, and the results are satisfactory. I think a temporal alternative must be considerably higher quality to justify the extra effort (and all problems with temporal artifacts must be solved).</p>
 
