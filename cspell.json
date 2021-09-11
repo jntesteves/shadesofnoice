@@ -1,0 +1,22 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "minWordLength": 3,
+  "enableFiletypes": [
+    "glsl",
+    "hlsl",
+    "ini",
+    "json",
+    "markdown",
+    "rust",
+    "shellscript",
+    "text",
+    "toml"
+  ],
+  "words": [
+    "Esteves",
+    "fastpages",
+    "FSR",
+    "Jonatas"
+  ]
+}
