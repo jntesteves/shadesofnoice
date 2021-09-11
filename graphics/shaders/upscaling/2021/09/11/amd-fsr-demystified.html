@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="twitter:card" content="summary_large_image" /><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>AMD FidelityFX Super Resolution 1.0 (FSR) demystified | Shades of Noice 😎</title>
+<meta name="generator" content="Jekyll v4.1.1" />
+<meta property="og:title" content="AMD FidelityFX Super Resolution 1.0 (FSR) demystified" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Journal of my experience porting AMD FSR to RetroArch on a GLSL Fragment Shading pass while making it work on OpenGL for the first time." />
+<meta property="og:description" content="Journal of my experience porting AMD FSR to RetroArch on a GLSL Fragment Shading pass while making it work on OpenGL for the first time." />
+<link rel="canonical" href="https://jntesteves.github.io/shadesofnoice/graphics/shaders/upscaling/2021/09/11/amd-fsr-demystified.html" />
+<meta property="og:url" content="https://jntesteves.github.io/shadesofnoice/graphics/shaders/upscaling/2021/09/11/amd-fsr-demystified.html" />
+<meta property="og:site_name" content="Shades of Noice 😎" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2021-09-11T00:00:00-05:00" />
+<script type="application/ld+json">
+{"url":"https://jntesteves.github.io/shadesofnoice/graphics/shaders/upscaling/2021/09/11/amd-fsr-demystified.html","@type":"BlogPosting","headline":"AMD FidelityFX Super Resolution 1.0 (FSR) demystified","dateModified":"2021-09-11T00:00:00-05:00","datePublished":"2021-09-11T00:00:00-05:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://jntesteves.github.io/shadesofnoice/graphics/shaders/upscaling/2021/09/11/amd-fsr-demystified.html"},"description":"Journal of my experience porting AMD FSR to RetroArch on a GLSL Fragment Shading pass while making it work on OpenGL for the first time.","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/shadesofnoice/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://jntesteves.github.io/shadesofnoice/feed.xml" title="Shades of Noice 😎" /><!-- the google_analytics_id gets auto inserted from the config file -->
+
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-3Q0ZV020EW"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-3Q0ZV020EW');
+</script>
+
+
+<link rel="shortcut icon" type="image/x-icon" href="/shadesofnoice/images/favicon.ico"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Primer/15.2.0/primer.css" integrity="sha512-xTz2ys4coGAOz8vuV1NcQBkgVmKhsSEtjbqyMJbBHRplFuvKIUo6xhLHpAyPt9mfR6twHJgn9OgVLuqOvjeBhg==" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog==" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/katex.min.css" integrity="sha512-h7nl+xz8wgDlNM4NqKEM4F1NkIRS17M9+uJwIGwuo8vGqIl4BhuCKdxjWEINm+xyrUjNCnK5dCrhM0sj+wTIXw==" crossorigin="anonymous" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/katex.min.js" integrity="sha512-/CMIhXiDA3m2c9kzRyd97MTb3MC6OVnx4TElQ7fkkoRghwDf6gi41gaT1PwF270W6+J60uTmwgeRpNpJdRV6sg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/contrib/auto-render.min.js" integrity="sha512-Do7uJAaHZm5OLrIv/yN4w0iG1dbu01kzdMNnFfu/mAqgUk6Nniv2JYHcwH+cNwjqgLcqcuBBk+JRvprLVI8azg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha512-0doc9hKxR3PYwso42RD1p5ySZpzzuDiOwMrdCEh2WdJZCjcmFKc/wEnL+z8fBQrnHoiNWbo+3fiGkOYXBdQp4A==" crossorigin="anonymous"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement( document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "[%", right: "%]", display: true},
+            {left: "$", right: "$", display: false}
+        ]}
+        );
+    });
+    </script>
+
+
+<script>
+function wrap_img(fn) {
+    if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading") {
+        var elements = document.querySelectorAll(".post img");
+        Array.prototype.forEach.call(elements, function(el, i) {
+            if (el.getAttribute("title") && (el.className != "emoji")) {
+                const caption = document.createElement('figcaption');
+                var node = document.createTextNode(el.getAttribute("title"));
+                caption.appendChild(node);
+                const wrapper = document.createElement('figure');
+                wrapper.className = 'image';
+                el.parentNode.insertBefore(wrapper, el);
+                el.parentNode.removeChild(el);
+                wrapper.appendChild(el);
+                wrapper.appendChild(caption);
+            }
+        });
+    } else { document.addEventListener('DOMContentLoaded', fn); }
+}
+window.onload = wrap_img;
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+    // add link icon to anchor tags
+    var elem = document.querySelectorAll(".anchor-link")
+    elem.forEach(e => (e.innerHTML = '<i class="fas fa-link fa-xs"></i>'));
+    });
+</script>
+</head>
+<body><header class="site-header">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/shadesofnoice/">Shades of Noice 😎</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/shadesofnoice/about/">About Me</a><a class="page-link" href="/shadesofnoice/search/">Search</a><a class="page-link" href="/shadesofnoice/categories/">Tags</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">AMD FidelityFX Super Resolution 1.0 (FSR) demystified</h1><p class="page-description">Journal of my experience porting AMD FSR to RetroArch on a GLSL Fragment Shading pass while making it work on OpenGL for the first time.</p><p class="post-meta post-meta-title"><time class="dt-published" datetime="2021-09-11T00:00:00-05:00" itemprop="datePublished">
+        Sep 11, 2021
+      </time>
+       • <span class="read-time" title="Estimated read time">
+    
+    
+      8 min read
+    
+</span></p>
+
+    
+      <p class="category-tags"><i class="fas fa-tags category-tags-icon"></i></i> 
+      
+        <a class="category-tags-link" href="/shadesofnoice/categories/#graphics">graphics</a>
+        &nbsp;
+      
+        <a class="category-tags-link" href="/shadesofnoice/categories/#shaders">shaders</a>
+        &nbsp;
+      
+        <a class="category-tags-link" href="/shadesofnoice/categories/#upscaling">upscaling</a>
+        
+      
+      </p>
+    
+
+    </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <ul class="section-nav">
+<li class="toc-entry toc-h2"><a href="#fsr-overview">FSR overview</a></li>
+<li class="toc-entry toc-h2"><a href="#low-level-overview">Low-level overview</a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#ffx_ah---shader-portability-lib">ffx_a.h - Shader Portability lib</a></li>
+<li class="toc-entry toc-h3"><a href="#ffx_fsr1h-spatial-scaling--extras">ffx_fsr1.h Spatial Scaling &amp; Extras</a></li>
+<li class="toc-entry toc-h3"><a href="#easu---edge-adaptive-spatial-upsampling">EASU - Edge Adaptive Spatial Upsampling</a></li>
+<li class="toc-entry toc-h3"><a href="#rcas---robust-contrast-adaptive-sharpening">RCAS - Robust Contrast Adaptive Sharpening</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h2"><a href="#a-compute-shader-you-say">A “compute shader”, you say</a></li>
+<li class="toc-entry toc-h2"><a href="#conclusion">Conclusion</a></li>
+<li class="toc-entry toc-h2"><a href="#links">Links</a></li>
+</ul><h2 id="fsr-overview">
+<a class="anchor" href="#fsr-overview" aria-hidden="true"><span class="octicon octicon-link"></span></a>FSR overview</h2>
+<p>AMD FidelityFX Super Resolution 1.0 (FSR) has been in the technology/gaming news for a while, but in case someone is learning of it for the first time, it’s an open-source <strong>spatial image upscaler</strong> implemented as a “compute shader” (you can think of it as AMD’s response to NVIDIA’s DLSS, if you’re familiar with that technology).</p>
+
+<p>Spatial in this context means that, to upscale an image, it only requires the image itself. It does not need frame history, motion vectors, a depth buffer… really, nothing else. That makes it very simple to integrate into any graphics pipeline.</p>
+
+<p>It’s meant to improve performance in 3D games by means of rendering the frame to a lower resolution than the target screen, and then using FSR to upscale it to the target resolution with a very cheap, heavily optimized algorithm that’s capable of yielding a full-resolution image that is indistinguishable in quality from the same frame if it was rendered directly to the screen resolution.</p>
+
+<p>Doing this with only spatial data, in a very cheap algorithm, is a challenge, and FSR delivers with amazing quality and performance. That makes it useful for so much more than just increasing performance. It’s genuinely a great choice for increasing image quality too, in contexts where rendering natively to a higher resolution is not possible. RetroArch, and emulation in general, fall into that category.</p>
+
+<p>You can find more high-level information and demos on the GPUOpen website: <a href="https://gpuopen.com/fidelityfx-superresolution/">https://gpuopen.com/fidelityfx-superresolution/</a></p>
+
+<h2 id="low-level-overview">
+<a class="anchor" href="#low-level-overview" aria-hidden="true"><span class="octicon octicon-link"></span></a>Low-level overview</h2>
+<p>FSR is open-source under a permissive license that allows it to be used for any purpose. The source code is available on GitHub: <a href="https://github.com/GPUOpen-Effects/FidelityFX-FSR">https://github.com/GPUOpen-Effects/FidelityFX-FSR</a></p>
+
+<p>The repository contains:</p>
+<ul>
+  <li>a <a href="https://github.com/GPUOpen-Effects/FidelityFX-FSR/raw/master/docs/FidelityFX-FSR-Overview-Integration.pdf">PDF document</a> with an overview and basic instructions for integrators;</li>
+  <li>a demo example implementation with full source-code on the <a href="https://github.com/GPUOpen-Effects/FidelityFX-FSR/tree/master/sample"><code class="language-plaintext highlighter-rouge">sample/</code> folder</a>;</li>
+  <li>and the lib headers on the <a href="https://github.com/GPUOpen-Effects/FidelityFX-FSR/tree/master/ffx-fsr"><code class="language-plaintext highlighter-rouge">ffx-fsr/</code> folder</a>.</li>
+</ul>
+
+<p>The headers are extensively documented in comments, and the sample is very small and easy to understand. Everything needed for integration is conveniently available on the repository. Nice!</p>
+
+<h3 id="ffx_ah---shader-portability-lib">
+<a class="anchor" href="#ffx_ah---shader-portability-lib" aria-hidden="true"><span class="octicon octicon-link"></span></a><code class="language-plaintext highlighter-rouge">ffx_a.h</code> - Shader Portability lib</h3>
+<p>This is the first header we must <code class="language-plaintext highlighter-rouge">#include</code>. It’s described in a comment in the file itself as:</p>
+<blockquote>
+  <p>Common central point for high-level shading language and C portability for various shader headers.</p>
+</blockquote>
+
+<p>This file is like a framework for writing portable shaders. It has a lot of defines and typedefs and function definitions for pretty much anything you may ever imagine you need while writing shader code. This file is much bigger than FSR itself, so I think only a fraction of it is actually being used.</p>
+
+<h3 id="ffx_fsr1h-spatial-scaling--extras">
+<a class="anchor" href="#ffx_fsr1h-spatial-scaling--extras" aria-hidden="true"><span class="octicon octicon-link"></span></a><code class="language-plaintext highlighter-rouge">ffx_fsr1.h</code> Spatial Scaling &amp; Extras</h3>
+<p>This file is FSR proper. It’s described in comments as:</p>
+<blockquote>
+  <p>FSR is a collection of algorithms relating to generating a higher resolution image. This specific header focuses on single-image non-temporal image scaling, and related tools.</p>
+
+  <p>The core functions are EASU and RCAS:</p>
+  <ul>
+    <li>
+<strong>[EASU] Edge Adaptive Spatial Upsampling:</strong> 1x to 4x area range spatial scaling, clamped adaptive elliptical filter.</li>
+    <li>
+<strong>[RCAS] Robust Contrast Adaptive Sharpening:</strong> A non-scaling variation on CAS.
+RCAS needs to be applied after EASU as a separate pass.</li>
+  </ul>
+
+  <p>Optional utility functions are:</p>
+  <ul>
+    <li>
+<strong>[LFGA] Linear Film Grain Applicator:</strong> Tool to apply film grain after scaling.</li>
+    <li>
+<strong>[SRTM] Simple Reversible Tone-Mapper:</strong> Linear HDR {0 to FP16_MAX} to {0 to 1} and back.</li>
+    <li>
+<strong>[TEPD] Temporal Energy Preserving Dither:</strong> Temporally energy preserving dithered {0 to 1} linear to gamma 2.0 conversion.</li>
+  </ul>
+</blockquote>
+
+<p>These optional extras are unexpected and very nice! Should use them if needed.</p>
+
+<h3 id="easu---edge-adaptive-spatial-upsampling">
+<a class="anchor" href="#easu---edge-adaptive-spatial-upsampling" aria-hidden="true"><span class="octicon octicon-link"></span></a>EASU - Edge Adaptive Spatial Upsampling</h3>
+<p>EASU is the first pass of two required, it is the upscaling pass. You read from the smaller image and output to the bigger buffer. It’s as simple as that, really!</p>
+
+<p>For the reading part, you just have to implement three very simple callback functions that FSR will use to gather texture componets <code class="language-plaintext highlighter-rouge">r</code>, <code class="language-plaintext highlighter-rouge">g</code> and <code class="language-plaintext highlighter-rouge">b</code> from the source sampler. GLSL f32 example:</p>
+<div class="language-glsl highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">AF4</span> <span class="nf">FsrEasuRF</span><span class="p">(</span><span class="n">AF2</span> <span class="n">p</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="n">textureGather</span><span class="p">(</span><span class="n">Source</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span> <span class="p">}</span>
+<span class="n">AF4</span> <span class="nf">FsrEasuGF</span><span class="p">(</span><span class="n">AF2</span> <span class="n">p</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="n">textureGather</span><span class="p">(</span><span class="n">Source</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span> <span class="p">}</span>
+<span class="n">AF4</span> <span class="nf">FsrEasuBF</span><span class="p">(</span><span class="n">AF2</span> <span class="n">p</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="n">textureGather</span><span class="p">(</span><span class="n">Source</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span> <span class="p">}</span>
+</code></pre></div></div>
+
+<p>This example is using types from <code class="language-plaintext highlighter-rouge">ffx_a.h</code>. You don’t have to use these if you don’t want to. <code class="language-plaintext highlighter-rouge">AF4</code> is the same as <code class="language-plaintext highlighter-rouge">vec4</code> and <code class="language-plaintext highlighter-rouge">AF2</code> is <code class="language-plaintext highlighter-rouge">vec2</code> in GLSL. <code class="language-plaintext highlighter-rouge">float4</code> and <code class="language-plaintext highlighter-rouge">float2</code> in HLSL, respectively.</p>
+
+<p>Now all that’s left is setting up some constants with the input and output dimensions, and you can call the <code class="language-plaintext highlighter-rouge">FsrEasu*</code> function. And that’s it, you’ve implemented FSR upscaling, congrats!</p>
+
+<h3 id="rcas---robust-contrast-adaptive-sharpening">
+<a class="anchor" href="#rcas---robust-contrast-adaptive-sharpening" aria-hidden="true"><span class="octicon octicon-link"></span></a>RCAS - Robust Contrast Adaptive Sharpening</h3>
+<p>After using EASU the image is upscaled but it doesn’t look too nice yet. RCAS is the second pass, it’s a sharpening filter specialized for use in combination with EASU. Just like the first pass, we need to set up some callback functions:</p>
+<div class="language-glsl highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">AF4</span> <span class="nf">FsrRcasLoadF</span><span class="p">(</span><span class="n">ASU2</span> <span class="n">p</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="n">AF4</span><span class="p">(</span><span class="n">texelFetch</span><span class="p">(</span><span class="n">Source</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="mi">0</span><span class="p">));</span> <span class="p">}</span>
+<span class="kt">void</span> <span class="nf">FsrRcasInputF</span><span class="p">(</span><span class="k">inout</span> <span class="n">AF1</span> <span class="n">r</span><span class="p">,</span> <span class="k">inout</span> <span class="n">AF1</span> <span class="n">g</span><span class="p">,</span> <span class="k">inout</span> <span class="n">AF1</span> <span class="n">b</span><span class="p">)</span> <span class="p">{}</span>
+</code></pre></div></div>
+
+<p>Yes, the second callback is a no-op. It’s for color conversion, but the output of EASU can go straight into RCAS, so in practice it should never be necessary. So, all we needed was a <code class="language-plaintext highlighter-rouge">texelFetch</code>. Can’t be this easy, you think, but it actually is! We can call the <code class="language-plaintext highlighter-rouge">FsrRcas*</code> function now, and job done.</p>
+
+<h2 id="a-compute-shader-you-say">
+<a class="anchor" href="#a-compute-shader-you-say" aria-hidden="true"><span class="octicon octicon-link"></span></a>A “compute shader”, you say</h2>
+<p>AMD’s documentation and sample app does all this on a compute shader. I know nothing of compute shaders, never used it. The only thing I understand is fragment shaders. Also, just learning how to use a compute shader won’t help, RetroArch currently doesn’t support those, and I’m not going to implement a whole new shader architecture just for FSR.</p>
+
+<p>So, what is FSR doing? Let’s dive deeper. I look at the <a href="https://github.com/GPUOpen-Effects/FidelityFX-FSR/blob/bcffc8171efb80e265991301a49670ed755088dd/ffx-fsr/ffx_fsr1.h#L315">source-code</a> and it does, well, math. Just like normal shader code, only math. It makes sense, it was us who setup the callback functions for input, and it’s us who define where the output goes, so there’s no magic going on in between those two things, only math. Which means, no external requirements besides the ones we have already provided. This is not a “compute shader”, it is just a shader, pretty generic, it runs on anything that can do math. I set it up on a fragment pass, output to <code class="language-plaintext highlighter-rouge">FragColor</code>, et voilà, I get great upscaling as a result!</p>
+
+<p>But, wait, OpenGL can do math, too. And indeed, although AMD didn’t test and don’t want to support FSR on OpenGL, it just works unmodified. I was actually developing on OpenGL all along and only noticed when the thing was already running, so really no problems there.</p>
+
+<p>Obviously this is not optimal. For AAA games using this thing to try to extract every bit of performance out of it this probably won’t cut it. But that’s not the purpose in RetroArch, we are only interested in a nice upscaling filter for retro games. FSR on a fragment shading pass delivers that.</p>
+
+<h2 id="conclusion">
+<a class="anchor" href="#conclusion" aria-hidden="true"><span class="octicon octicon-link"></span></a>Conclusion</h2>
+<p>FSR is merged in RetroArch’s main development branch and already on a released version. Community response has been very positive. I think the quality of the results look great. Here’s the anouncement on <a href="https://twitter.com/libretro/status/1433511745641922572">Twitter</a> with some good pictures demonstrating it, and the release <a href="https://www.libretro.com/index.php/retroarch-1-9-9-released/">announcement for RetroArch 1.9.9</a>, the first version to include the feature.</p>
+
+<p>AMD deserves credit for a quality release of open-source code. This was my first foray into shaders and graphics programming in general, and I was able to get from nothing to a working implementation in exactly one day of work. For experienced graphics developers, this thing must be so easy it’s not even funny. They’ll probably try to push it out to an intern, so boring this thing must be.</p>
+
+<p>Also commendable is the work RetroArch’s developers have put into its renderer. The only reason I could get this done at all is because all the infrastructure for upscaling was already in place, so my work boiled down to just using it.</p>
+
+<p>If you’re asking yourself if you should implement FSR on your graphics renderer, the answer is probably yes, if your renderer already has some support for upscaling. Even if performance hasn’t been a problem. Users seem love FSR, they want it, and it’s free, there’s no reason not to.</p>
+
+<p>If you don’t have upscaling in place, it could get a little more tricky, I guess, but I wouldn’t know. If you want to add upscaling, them consider FSR as a valid option. As far as I know, all alternatives involve some kind of temporal dimension. FSR is much simpler, and the results are satisfactory. I think a temporal alternative must be considerably higher quality to justify the extra effort (and all problems with temporal artifacts must be solved).</p>
+
+<p>Being pragmatic, FSR looks good, if it’s good enough for your use-case, them it’s good enough.</p>
+
+<h2 id="links">
+<a class="anchor" href="#links" aria-hidden="true"><span class="octicon octicon-link"></span></a>Links</h2>
+<ul>
+  <li>Source-code: <a href="https://github.com/libretro/slang-shaders/tree/master/fsr">https://github.com/libretro/slang-shaders/tree/master/fsr</a>
+</li>
+  <li>Initial merge request: <a href="https://github.com/libretro/slang-shaders/pull/189">https://github.com/libretro/slang-shaders/pull/189</a>
+</li>
+  <li>Final merge request: <a href="https://github.com/libretro/slang-shaders/pull/192">https://github.com/libretro/slang-shaders/pull/192</a>
+</li>
+</ul>
+
+<p>I release this code into the public domain under the terms of the <a href="http://unlicense.org/">Unlicense</a>.</p>
+
+  </div><!-- from https://github.com/utterance/utterances -->
+<script src="https://utteranc.es/client.js"
+        repo="jntesteves/shadesofnoice"
+        issue-term="title"
+        label="blogpost-comment"
+        theme="preferred-color-scheme"
+        crossorigin="anonymous"
+        async>
+</script><a class="u-url" href="/shadesofnoice/graphics/shaders/upscaling/2021/09/11/amd-fsr-demystified.html" hidden></a>
+</article>
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/shadesofnoice/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <p class="feed-subscribe">
+          <a href="/shadesofnoice/feed.xml">
+            <svg class="svg-icon orange">
+              <use xlink:href="/shadesofnoice/assets/minima-social-icons.svg#rss"></use>
+            </svg><span>Subscribe</span>
+          </a>
+        </p>
+      </div>
+      <div class="footer-col">
+        <p>Noice shades shades noicely.</p>
+      </div>
+    </div>
+
+    <div class="social-links"><ul class="social-media-list"><li><a rel="me" href="https://github.com/jntesteves" title="jntesteves"><svg class="svg-icon grey"><use xlink:href="/shadesofnoice/assets/minima-social-icons.svg#github"></use></svg></a></li><li><a rel="me" href="https://twitter.com/jntesteves" title="jntesteves"><svg class="svg-icon grey"><use xlink:href="/shadesofnoice/assets/minima-social-icons.svg#twitter"></use></svg></a></li></ul>
+</div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>
