@@ -1,2 +1,0 @@
-{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\Q({{ site.baseurl }}/images/logo.png \"fast.ai's logo\")\\E$"}
-{"rule":"COMMA_PARENTHESIS_WHITESPACE","sentence":"^\\Q({{ site.baseurl }}/images/logo.png \"fast.ai's logo\")\\E$"}
