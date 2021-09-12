@@ -1,1 +1,12 @@
+DLSS
+EASU
+FidelityFX
+GLSL
+GPUOpen
+HLSL
+luma
+RCAS
 RetroArch
+Unlicense
+Upsampling
+upscaler

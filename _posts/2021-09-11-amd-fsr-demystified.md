@@ -28,13 +28,13 @@ The repository contains:
 
 The headers are extensively documented in comments, and the sample is very small and easy to understand. Everything needed for integration is conveniently available on the repository. Nice!
 
-### `ffx_a.h` - Shader Portability lib
+### `ffx_a.h` — Shader Portability lib
 This is the first header we must `#include`. It's described in a comment in the file itself as:
 >Common central point for high-level shading language and C portability for various shader headers.
 
 This file is like a framework for writing portable shaders. It has a lot of defines and typedefs and function definitions for pretty much anything you may ever imagine you need while writing shader code. This file is much bigger than FSR itself, so I think only a fraction of it is actually being used.
 
-### `ffx_fsr1.h` Spatial Scaling & Extras
+### `ffx_fsr1.h` — Spatial Scaling & Extras
 This file is FSR proper. It's described in comments as:
 >FSR is a collection of algorithms relating to generating a higher resolution image. This specific header focuses on single-image non-temporal image scaling, and related tools.
 >
@@ -50,10 +50,10 @@ This file is FSR proper. It's described in comments as:
 
 These optional extras are unexpected and very nice! Should use them if needed.
 
-### EASU - Edge Adaptive Spatial Upsampling
+### EASU — Edge Adaptive Spatial Upsampling
 EASU is the first pass of two required, it is the upscaling pass. You read from the smaller image and output to the bigger buffer. It's as simple as that, really!
 
-For the reading part, you just have to implement three very simple callback functions that FSR will use to gather texture componets `r`, `g` and `b` from the source sampler. GLSL f32 example:
+For the reading part, you just have to implement three very simple callback functions that FSR will use to gather texture components `r`, `g` and `b` from the source sampler. GLSL f32 example:
 ```glsl
 AF4 FsrEasuRF(AF2 p) { return textureGather(Source, p, 0); }
 AF4 FsrEasuGF(AF2 p) { return textureGather(Source, p, 1); }
@@ -64,7 +64,7 @@ This example is using types from `ffx_a.h`. You don't have to use these if you d
 
 Now all that's left is setting up some constants with the input and output dimensions, and you can call the `FsrEasu*` function. And that's it, you've implemented FSR upscaling, congrats!
 
-### RCAS - Robust Contrast Adaptive Sharpening
+### RCAS — Robust Contrast Adaptive Sharpening
 After using EASU the image is upscaled but it doesn't look too nice yet. RCAS is the second pass, it's a sharpening filter specialized for use in combination with EASU. Just like the first pass, we need to set up some callback functions:
 ```glsl
 AF4 FsrRcasLoadF(ASU2 p) { return AF4(texelFetch(Source, p, 0)); }
