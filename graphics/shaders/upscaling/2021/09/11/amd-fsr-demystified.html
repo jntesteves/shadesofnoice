@@ -134,10 +134,10 @@ window.onload = wrap_img;
 <li class="toc-entry toc-h2"><a href="#fsr-overview">FSR overview</a></li>
 <li class="toc-entry toc-h2"><a href="#low-level-overview">Low-level overview</a>
 <ul>
-<li class="toc-entry toc-h3"><a href="#ffx_ah---shader-portability-lib">ffx_a.h - Shader Portability lib</a></li>
-<li class="toc-entry toc-h3"><a href="#ffx_fsr1h-spatial-scaling--extras">ffx_fsr1.h Spatial Scaling &amp; Extras</a></li>
-<li class="toc-entry toc-h3"><a href="#easu---edge-adaptive-spatial-upsampling">EASU - Edge Adaptive Spatial Upsampling</a></li>
-<li class="toc-entry toc-h3"><a href="#rcas---robust-contrast-adaptive-sharpening">RCAS - Robust Contrast Adaptive Sharpening</a></li>
+<li class="toc-entry toc-h3"><a href="#ffx_ah--shader-portability-lib">ffx_a.h — Shader Portability lib</a></li>
+<li class="toc-entry toc-h3"><a href="#ffx_fsr1h--spatial-scaling--extras">ffx_fsr1.h — Spatial Scaling &amp; Extras</a></li>
+<li class="toc-entry toc-h3"><a href="#easu--edge-adaptive-spatial-upsampling">EASU — Edge Adaptive Spatial Upsampling</a></li>
+<li class="toc-entry toc-h3"><a href="#rcas--robust-contrast-adaptive-sharpening">RCAS — Robust Contrast Adaptive Sharpening</a></li>
 </ul>
 </li>
 <li class="toc-entry toc-h2"><a href="#a-compute-shader-you-say">A “compute shader”, you say</a></li>
@@ -168,8 +168,8 @@ window.onload = wrap_img;
 
 <p>The headers are extensively documented in comments, and the sample is very small and easy to understand. Everything needed for integration is conveniently available on the repository. Nice!</p>
 
-<h3 id="ffx_ah---shader-portability-lib">
-<a class="anchor" href="#ffx_ah---shader-portability-lib" aria-hidden="true"><span class="octicon octicon-link"></span></a><code class="language-plaintext highlighter-rouge">ffx_a.h</code> - Shader Portability lib</h3>
+<h3 id="ffx_ah--shader-portability-lib">
+<a class="anchor" href="#ffx_ah--shader-portability-lib" aria-hidden="true"><span class="octicon octicon-link"></span></a><code class="language-plaintext highlighter-rouge">ffx_a.h</code> — Shader Portability lib</h3>
 <p>This is the first header we must <code class="language-plaintext highlighter-rouge">#include</code>. It’s described in a comment in the file itself as:</p>
 <blockquote>
   <p>Common central point for high-level shading language and C portability for various shader headers.</p>
@@ -177,8 +177,8 @@ window.onload = wrap_img;
 
 <p>This file is like a framework for writing portable shaders. It has a lot of defines and typedefs and function definitions for pretty much anything you may ever imagine you need while writing shader code. This file is much bigger than FSR itself, so I think only a fraction of it is actually being used.</p>
 
-<h3 id="ffx_fsr1h-spatial-scaling--extras">
-<a class="anchor" href="#ffx_fsr1h-spatial-scaling--extras" aria-hidden="true"><span class="octicon octicon-link"></span></a><code class="language-plaintext highlighter-rouge">ffx_fsr1.h</code> Spatial Scaling &amp; Extras</h3>
+<h3 id="ffx_fsr1h--spatial-scaling--extras">
+<a class="anchor" href="#ffx_fsr1h--spatial-scaling--extras" aria-hidden="true"><span class="octicon octicon-link"></span></a><code class="language-plaintext highlighter-rouge">ffx_fsr1.h</code> — Spatial Scaling &amp; Extras</h3>
 <p>This file is FSR proper. It’s described in comments as:</p>
 <blockquote>
   <p>FSR is a collection of algorithms relating to generating a higher resolution image. This specific header focuses on single-image non-temporal image scaling, and related tools.</p>
@@ -205,11 +205,11 @@ RCAS needs to be applied after EASU as a separate pass.</li>
 
 <p>These optional extras are unexpected and very nice! Should use them if needed.</p>
 
-<h3 id="easu---edge-adaptive-spatial-upsampling">
-<a class="anchor" href="#easu---edge-adaptive-spatial-upsampling" aria-hidden="true"><span class="octicon octicon-link"></span></a>EASU - Edge Adaptive Spatial Upsampling</h3>
+<h3 id="easu--edge-adaptive-spatial-upsampling">
+<a class="anchor" href="#easu--edge-adaptive-spatial-upsampling" aria-hidden="true"><span class="octicon octicon-link"></span></a>EASU — Edge Adaptive Spatial Upsampling</h3>
 <p>EASU is the first pass of two required, it is the upscaling pass. You read from the smaller image and output to the bigger buffer. It’s as simple as that, really!</p>
 
-<p>For the reading part, you just have to implement three very simple callback functions that FSR will use to gather texture componets <code class="language-plaintext highlighter-rouge">r</code>, <code class="language-plaintext highlighter-rouge">g</code> and <code class="language-plaintext highlighter-rouge">b</code> from the source sampler. GLSL f32 example:</p>
+<p>For the reading part, you just have to implement three very simple callback functions that FSR will use to gather texture components <code class="language-plaintext highlighter-rouge">r</code>, <code class="language-plaintext highlighter-rouge">g</code> and <code class="language-plaintext highlighter-rouge">b</code> from the source sampler. GLSL f32 example:</p>
 <div class="language-glsl highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">AF4</span> <span class="nf">FsrEasuRF</span><span class="p">(</span><span class="n">AF2</span> <span class="n">p</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="n">textureGather</span><span class="p">(</span><span class="n">Source</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span> <span class="p">}</span>
 <span class="n">AF4</span> <span class="nf">FsrEasuGF</span><span class="p">(</span><span class="n">AF2</span> <span class="n">p</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="n">textureGather</span><span class="p">(</span><span class="n">Source</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span> <span class="p">}</span>
 <span class="n">AF4</span> <span class="nf">FsrEasuBF</span><span class="p">(</span><span class="n">AF2</span> <span class="n">p</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="n">textureGather</span><span class="p">(</span><span class="n">Source</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span> <span class="p">}</span>
@@ -219,8 +219,8 @@ RCAS needs to be applied after EASU as a separate pass.</li>
 
 <p>Now all that’s left is setting up some constants with the input and output dimensions, and you can call the <code class="language-plaintext highlighter-rouge">FsrEasu*</code> function. And that’s it, you’ve implemented FSR upscaling, congrats!</p>
 
-<h3 id="rcas---robust-contrast-adaptive-sharpening">
-<a class="anchor" href="#rcas---robust-contrast-adaptive-sharpening" aria-hidden="true"><span class="octicon octicon-link"></span></a>RCAS - Robust Contrast Adaptive Sharpening</h3>
+<h3 id="rcas--robust-contrast-adaptive-sharpening">
+<a class="anchor" href="#rcas--robust-contrast-adaptive-sharpening" aria-hidden="true"><span class="octicon octicon-link"></span></a>RCAS — Robust Contrast Adaptive Sharpening</h3>
 <p>After using EASU the image is upscaled but it doesn’t look too nice yet. RCAS is the second pass, it’s a sharpening filter specialized for use in combination with EASU. Just like the first pass, we need to set up some callback functions:</p>
 <div class="language-glsl highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">AF4</span> <span class="nf">FsrRcasLoadF</span><span class="p">(</span><span class="n">ASU2</span> <span class="n">p</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="n">AF4</span><span class="p">(</span><span class="n">texelFetch</span><span class="p">(</span><span class="n">Source</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="mi">0</span><span class="p">));</span> <span class="p">}</span>
 <span class="kt">void</span> <span class="nf">FsrRcasInputF</span><span class="p">(</span><span class="k">inout</span> <span class="n">AF1</span> <span class="n">r</span><span class="p">,</span> <span class="k">inout</span> <span class="n">AF1</span> <span class="n">g</span><span class="p">,</span> <span class="k">inout</span> <span class="n">AF1</span> <span class="n">b</span><span class="p">)</span> <span class="p">{}</span>
@@ -292,7 +292,7 @@ RCAS needs to be applied after EASU as a separate pass.</li>
         </p>
       </div>
       <div class="footer-col">
-        <p>Noice shades shades noicely.</p>
+        <p>Only the noicest shades.</p>
       </div>
     </div>
 
