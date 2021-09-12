@@ -7,7 +7,7 @@
 # https://learnxinyminutes.com/docs/yaml/
 
 title: Shades of Noice 😎
-description: Only the noicest shades.
+# description: Only the noicest shades.
 github_username: jntesteves
 # you can comment the below line out if your repo name is not different than your baseurl
 github_repo: "shadesofnoice"
