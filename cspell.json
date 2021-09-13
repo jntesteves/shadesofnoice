@@ -1,7 +1,17 @@
 {
   "version": "0.2",
   "language": "en",
-  "minWordLength": 3,
+  "minWordLength": 4,
+  "dictionaries": [
+    "ltex.dictionary.en-US"
+  ],
+  "dictionaryDefinitions": [
+    {
+      "name": "ltex.dictionary.en-US",
+      "path": "./.vscode/ltex.dictionary.en-US.txt",
+      "addWords": true
+    }
+  ],
   "enableFiletypes": [
     "glsl",
     "hlsl",
@@ -12,14 +22,5 @@
     "shellscript",
     "text",
     "toml"
-  ],
-  "words": [
-    "Esteves",
-    "fastpages",
-    "FSR",
-    "jntesteves",
-    "Jonatas",
-    "Noice",
-    "shadesofnoice"
   ]
 }
