@@ -1,5 +1,6 @@
 DLSS
 EASU
+fastpages
 FidelityFX
 GLSL
 GPUOpen
